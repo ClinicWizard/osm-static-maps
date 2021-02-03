@@ -22,15 +22,15 @@ app.use((req, res, next) => {
 
 function htmlEscape(text) {
   return text.replace(/&/g, '&amp;').
-  replace(/</g, '&lt;').
-  replace(/"/g, '&quot;').
-  replace(/'/g, '&#039;');
+    replace(/</g, '&lt;').
+    replace(/"/g, '&quot;').
+    replace(/'/g, '&#039;');
 }
 
 function sanitize(params) {
   let result = {}
   for (let [key, value] of Object.entries(params)) {
-      result[key] = htmlEscape(value)
+    result[key] = htmlEscape(value)
   }
   return result;
 }
@@ -42,7 +42,7 @@ const handler = (res, params) => {
   if (
     filename &&
     !(filename.startsWith("http://") ||
-    filename.startsWith("https://"))
+      filename.startsWith("https://"))
   ) {
     throw new Error(
       `'geojsonfile' parameter on server only allowed if filename starts with http(s)`
@@ -65,5 +65,7 @@ app.post("/dynamic", (req, res) => {
   var sanitized = sanitize(req.body)
   handler(res, { ...sanitized, renderToHtml: true })
 })
+
+app.use(express.static('public'))
 
 module.exports = http.createServer(app);

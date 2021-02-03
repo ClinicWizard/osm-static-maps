@@ -4,6 +4,7 @@ const https = require("https");
 const Handlebars = require('handlebars');
 const path = require('path');
 const child_process = require("child_process");
+const { option } = require('commander');
 
 let chrome = { args: [] };
 let puppeteer;
@@ -72,7 +73,7 @@ class Browser {
   }
   async getPage() {
     const browser = await this.getBrowser()
-      // console.log("NEW PAGE");
+    // console.log("NEW PAGE");
     return browser.newPage()
   }
 }
@@ -90,7 +91,7 @@ function httpGet(url) {
       res.setEncoding('utf8');
       let rawData = '';
       res.on('data', (chunk) => { rawData += chunk; });
-      res.on('end', () => resolve(rawData) );
+      res.on('end', () => resolve(rawData));
     });
     req.on('error', (err) => {
       reject(err);
@@ -100,17 +101,35 @@ function httpGet(url) {
 
 process.on("warning", (e) => console.warn(e.stack));
 
-module.exports = function(options) {
-  return new Promise(function(resolve, reject) {
+module.exports = function (options) {
+  return new Promise(function (resolve, reject) {
     options = options || {};
+
+    // 
+    options.geojson = {
+      type: "Point",
+      coordinates: [0, 0],
+      markerIconOptions: {
+        "iconUrl": process.env.HOST + "/marker.png",
+        "iconSize": [32, 32],
+        "iconAnchor": [16, 30],
+      }
+    }
+    if (options.center) {
+      options.geojson.coordinates = [
+        parseFloat(options.center.split(',')[0]),
+        parseFloat(options.center.split(',')[1])
+      ]
+    }
+
     options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
     options.geojsonfile = options.geojsonfile || '';
     options.height = options.height || 600;
     options.width = options.width || 800;
-    options.center = options.center || '';
+    // options.center = options.center || '';
     options.zoom = options.zoom || '';
     options.maxZoom = options.maxZoom || (options.vectorserverUrl ? 20 : 17);
-    options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
+    options.attribution = options.attribution || '© OpenStreetMap contributors';
     options.tileserverUrl = options.tileserverUrl || 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     options.vectorserverUrl = options.vectorserverUrl || '';
     options.vectorserverToken = options.vectorserverToken || 'no-token';
@@ -190,7 +209,7 @@ module.exports = function(options) {
         } else {
           if (options.oxipng) {
             const child = child_process.spawn('/root/.cargo/bin/oxipng', ['-']);
-            child.stdin.on('error', function() {});
+            child.stdin.on('error', function () { });
             child.stdin.write(imageBinary);
             child.stdin.end();
             let newimg = [];
@@ -203,10 +222,10 @@ module.exports = function(options) {
         }
 
       }
-      catch(e) {
+      catch (e) {
         page.close();
         // console.log("PAGE CLOSED with err" + e);
-        throw(e);
+        throw (e);
       }
       page.close();
       // console.log("PAGE CLOSED ok");
